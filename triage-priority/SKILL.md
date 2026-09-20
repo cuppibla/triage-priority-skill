@@ -1,6 +1,6 @@
 ---
 name: triage-priority
-description: Assign and defend a P0/P1/P2/P3 priority for any bug, incident, task, or backlog item using a fixed, decidable standard (blast radius x severity + escalators), and sort mixed lists into a work order. Use when asked how urgent something is, what to work on first, or to triage a bug list, review findings, an incident, or a backlog - and whenever P0/P1/P2/P3 needs to be applied consistently. Not for estimating effort or writing the fix itself.
+description: Assign and defend a P0/P1/P2/P3 priority for any bug, incident, regression, or review finding using a fixed, decidable standard (blast radius x severity + escalators with floors), and sort mixed lists into a work order. Use when asked how urgent something is, what to fix first, or to triage a bug list, review findings, an incident, or a defect backlog - and whenever P0/P1/P2/P3 needs to be applied consistently. Not for feature requests or roadmap planning, not for estimating effort, and not for writing the fix itself.
 ---
 
 # Priority triage standard — P0 / P1 / P2 / P3
@@ -14,7 +14,10 @@ independently. Everything below is written so the answer is *derived*, not voted
 
 Answer that in concrete terms first. If the answer is vague, the triage is not ready —
 go get the missing fact (how many users? is there a workaround? is data still being
-written wrong?) before naming a level.
+written wrong?) before naming a level. If you *can't* get it — you're triaging a pasted
+list, the reporter is offline — score under a stated assumption, mark the level
+provisional, and write the fact that would change it. Never stall on a missing fact;
+never hide that it's missing.
 
 ## Step 1 — Score two axes
 
@@ -26,6 +29,13 @@ written wrong?) before naming a level.
 | **Many** | a whole segment, tier, region, or a named large customer |
 | **Some** | a minority path, one team, one integration |
 | **Few** | rare edge case, one internal user, only reproducible on purpose |
+
+**Nobody?** If no one is affected today — capacity headroom, tech debt, a feature
+request, a refactor — it is not a defect and this standard does not triage it. Say
+"roadmap, not triage", write the trigger that would turn it into a defect, and stop.
+The one exception: an item with no current user impact but an escalator (below) starts
+at **P3** and only the escalators can lift it. That is how a risk with zero breakage
+still gets an honest number.
 
 **Severity** — how bad is it for someone in that radius:
 
@@ -47,10 +57,15 @@ written wrong?) before naming a level.
 
 ## Step 3 — Apply escalators (these override the grid, upward only)
 
-Raise **one level** (to at most P0) if any are true:
+**Each escalator that applies raises the level by one, capped at P0.** They stack: two
+escalators on a P3 make it a P1. Two of them also carry a **floor** — a minimum level
+that applies regardless of what the axes said, because these are risks, not breakage,
+and the grid can't see them.
 
 - **Data**: data is being lost, corrupted, or silently written wrong — and every hour adds more.
-- **Security**: exploitable without insider access, or credentials/PII are exposed.
+  *Floor: P1 while it is still being written wrong.*
+- **Security**: exploitable without insider access, or credentials/PII are exposed (even
+  internally). *Floor: P1. P0 if actively exploited, or the exposure is external.*
 - **Money**: charges, payouts, or billing are wrong in either direction.
 - **Legal / compliance**: a contractual SLA, audit, or regulatory deadline is at stake.
 - **Trust**: publicly visible and embarrassing (status page, front page, customer demo tomorrow).
@@ -90,7 +105,8 @@ a P3 — not a failure.
 1. **Priority is a schedule, not a feeling.** It answers *when*, never *how much we care*.
    "This really matters to me" is not evidence; "three customers are blocked today" is.
 2. **Severity ≠ priority.** A total crash in a feature nobody uses is severity-high,
-   priority-P2. A cosmetic typo on the pricing page during a launch is severity-low, P1.
+   priority-P2. A cosmetic typo on the pricing page during a launch is severity-low, P1
+   (All × Cosmetic = P3, + trust + decay).
 3. **Effort never sets the level.** A two-minute fix and a two-week fix with identical
    impact are the same priority. Effort decides *order within* a level, nothing more.
 4. **P0 has a budget.** More than one or two open P0s means the label has stopped
@@ -115,7 +131,7 @@ deliverable, the letter alone is worthless:
 
 ```
 P1 — checkout retries drop the second payment attempt
-Radius × severity: Many × Degraded  (paid tier only, card works on 3rd try)
+Radius × severity: Some × Degraded  (paid tier, ~2% of retries, card works on 3rd try)
 Escalator: money (charges land twice in ~2% of retries) → would be P2, raised
 If ignored a week: ~40 double-charges, each a manual refund + support ticket
 Owner / by: @owner, before Friday's release cut
@@ -123,30 +139,39 @@ Raise to P0 if: double-charges exceed refund capacity, or any charge is unrefund
 Drop to P2 if: the retry path turns out to be dead code behind a disabled flag
 ```
 
-For a **list**, emit one table sorted P0→P3, and within a level order by:
-(1) unblocks other people, (2) decays if delayed, (3) cheapest first. Add a one-line
-`Why` per row, then state the cut line: what you'd actually do this week and what you
-are consciously not doing.
+If the level rests on an unverified fact (rule 5), suffix it — `P1?` — and add one line:
+`Provisional until: <what you will check>, by <when>`. A provisional level with no
+check and no deadline is just a guess with a question mark on it.
+
+For a **list**, emit one table with the columns
+`Level | Item | Radius × Severity | Escalator | Why | Owner`, sorted P0→P3, and within
+a level ordered by: (1) unblocks other people, (2) decays if delayed, (3) cheapest first.
+Then state the cut line: what you'd actually do this week and what you are consciously
+not doing.
 
 ## Calibration examples
 
 Argue with these before arguing with the grid — they are the standard's real definition.
 
 - **Every WebSocket reconnect drops messages sent during the gap; all users, chat is the product.**
-  All × Blocked + data loss escalator → **P0**.
+  All × Degraded (users can still chat; "lossy" is the Degraded definition) = P1,
+  + data escalator → **P0**.
 - **Same bug, but only when the tab is backgrounded on Safari, and messages resync after 30s.**
   Some × Degraded → **P2**. Self-healing, workaround is "wait".
 - **Messages arrive out of order in rooms over 50 people; the whole enterprise tier is >50.**
-  Many × Degraded → P1; blocking-others escalator (the demo is Thursday) → **P0**.
+  Many × Degraded = P1; trust escalator (a customer demo Thursday) → **P0**.
 - **Auth token in a debug log, logs are internal-only and retained 7 days.**
-  Few × Annoying, but security escalator and decay (rotate before retention window) → **P1**.
+  Nobody is affected, so it starts at P3. Security escalator (credentials exposed) → P2,
+  and its floor already says at least P1; decay (rotate before the 7-day window) → **P1**.
+  Derived two ways, same answer.
 - **Typing indicator sticks on after a user leaves.**
   All × Cosmetic → **P3**. Everyone sees it, nobody is harmed.
 - **A helper function is duplicated in four files.**
-  No user-facing radius at all → **P3**, unless it has already caused a bug (then triage
-  *that* bug, and this rides along).
+  Nobody is affected and no escalator applies → **roadmap, not triage**. If it has
+  already caused a bug, triage *that* bug and let this ride along with the fix.
 - **Load test shows the server falls over at 10k concurrent; today's peak is 400.**
-  Nobody is affected yet → **P2** with a trigger: "P1 at 3k sustained." Future pain is
+  Nobody is affected yet and nothing is decaying → **roadmap, not triage**, with the
+  trigger written down: "becomes a P1 the day sustained load passes 3k." Future pain is
   planning, not priority.
 - **One internal admin page 500s; there is a CLI that does the same thing.**
   Few × Degraded → **P2**.

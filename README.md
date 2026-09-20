@@ -18,10 +18,17 @@ theoretically) against severity (Blocked / Degraded / Annoying / Cosmetic).
 | **Some** | P1      | P2       | P2       | P3       |
 | **Few**  | P2      | P2       | P3       | P3       |
 
-**Apply escalators** (+1 level, upward only): data loss or corruption, security, money,
-legal/SLA, public trust, blocking others, or decay — the fix getting more expensive the
-longer it waits. There are no de-escalators; if a verdict feels too high, an axis was
-scored wrong.
+**Apply escalators**, upward only: data loss or corruption, security, money, legal/SLA,
+public trust, blocking others, or decay — the fix getting more expensive the longer it
+waits. Each one that applies adds a level, capped at P0, and they stack. Data and
+security also carry a **floor** of P1 (P0 if actively exploited), because they are risks
+rather than breakage and the grid can't see them. There are no de-escalators; if a
+verdict feels too high, an axis was scored wrong.
+
+**Nobody affected today?** Capacity headroom, tech debt, and feature requests aren't
+defects — the standard says "roadmap, not triage", writes down the trigger that would
+change that, and stops. A zero-impact item that *does* carry an escalator starts at P3
+and only the escalators lift it.
 
 **What the levels commit you to:**
 
