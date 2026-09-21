@@ -1,0 +1,23 @@
+{
+  "skill_name": "fix-complaint",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "fix complaints 2 in scenario-15. show me the root cause, why your solution, and put it on a branch with prefix fix2",
+      "expected_output": "Verification plan appears before any code change; bug reproduced on main; root cause named with file:line and the broken assumption; fix on branch fix2-<slug> with a regression test shown failing on main and passing on branch; npm test run; final report under 250 words in the fixed template, easy English.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "can you work complaint 5 in scenario-08? i want to be sure the fix is real, test it properly",
+      "expected_output": "Same structure: plan first, repro, root cause, options with a rejected alternative, branch fix5-<slug>, tests on main vs branch, real-app check or a stated reason it was skipped, one-minute report at the end.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "complaints/07.md in scenario-15 — figure out what's actually wrong and fix it. keep the explanation simple, my PM will read it",
+      "expected_output": "Report readable by a non-engineer: no unexplained jargon, sentences under 20 words, proof table with commands. Branch fix7-<slug>. If not reproducible, says so instead of guessing a fix.",
+      "files": []
+    }
+  ]
+}
