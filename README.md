@@ -90,3 +90,10 @@ line explicitly: what gets done this week, and what is consciously not being don
 ## License
 
 MIT
+
+## Also in this repo: `fix-complaint`
+
+A second skill, in `fix-complaint/SKILL.md`. Fixes one numbered user complaint
+(`complaints/NN.md`) the safe way: verification plan first, reproduce the bug, name the
+root cause, pick a fix and say why, test thoroughly, verify on a clean checkout, deliver
+on a `fixN-<slug>` branch, and end with a report a human can read in one minute.
