@@ -85,6 +85,8 @@ The installer uses only Python's standard library and works offline after downlo
 | `/pr-review scout #42` | Initial analysis: behavior, callers, risks, and proposed checks. Stops before deeper verification. |
 | `/pr-review draft-comments #42` | Draft unpublished comments from verified findings at the current revision. |
 
+Review is the default mode, so `/pr-review #42` is enough; the extra word `review` is optional. Use `/pr-review` alone only when the conversation already clearly identifies the PR or branch and comparison base. Otherwise include the PR number, URL, or branch/base to make the target explicit. This command reviews that target; it does not rank the open PR queue.
+
 For a normal review, go directly to `review`. `scout` is optional when you want to agree on the investigation scope first. There is **no fixed time budget**: add a time limit only when you have one, for example `/pr-review review #42; initial pass, up to 5 minutes`. The report must identify incomplete verification.
 
 You do not need to repeat the built-in defaults. The skill already asks for focused checks, evidence, explicit uncertainty, no application-code changes, and private output. It does not post comments, submit a GitHub review, or merge unless you separately request that action. Skill instructions guide the agent; they do not replace the tool's permission controls.
@@ -127,6 +129,19 @@ Use [`pr-triage`](pr-triage/SKILL.md) to choose the order, then use `pr-review` 
 ```
 
 To restrict the queue, use `/pr-triage #12 #18 #42` or specify a repository and filter in plain language. The triage skill returns a ranked plan and stops; it continues into review only if you also ask it to. It does not impose a fixed time budget.
+
+The short command `/pr-triage` is enough when the current repository is unambiguous: it defaults to that repository's open PRs. You do not need to repeat the ranking criteria or shallow-scan instructions each time.
+
+For a quick initial pass with a specific budget and shortlist size, paste this as one message in Claude Code:
+
+```text
+/pr-triage open PRs in this repository.
+Spend up to 2 minutes on an initial metadata scan.
+Recommend the top 3, explain the order, and identify missing information.
+No deep reviews or tests. Report how much of the queue you inspected.
+```
+
+Two minutes is a requested budget, not an enforced timeout or a measured runtime guarantee. This example adds a time budget, a top-three shortlist, and a metadata-only constraint; reporting coverage and keeping the scan shallow are already part of the skill. If fewer than three PRs are available, recommend only those that exist. Then run `/pr-review #42` with the PR you choose from the result.
 
 If a specific PR is assigned, review it directly. If choosing the order is part of the task, do one shallow pass over the queue before deep review. Use metadata, descriptions, changed files, CI status, and explicit dependencies; inspect selected diffs where those signals are ambiguous. A high-risk change deserves attention, but risk alone does not prove a defect or urgency.
 
