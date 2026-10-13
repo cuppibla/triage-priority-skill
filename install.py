@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Install the pr-review skill into an explicitly selected project or user scope."""
+"""Install pr-review and pr-triage into an explicitly selected project or user scope."""
 import argparse
 from pathlib import Path
 import shutil
 import sys
 
-NAMES = ("pr-review",)
+NAMES = ("pr-review", "pr-triage")
 
 
 def snapshot(directory):
@@ -21,7 +21,7 @@ def snapshot(directory):
 
 
 def install(source, target):
-    # Validate the skill and destination before writing.
+    # Validate every skill and destination before writing any of them.
     pending = []
     for name in NAMES:
         src, dst = source / name, target / name
@@ -43,14 +43,15 @@ def install(source, target):
     for name in NAMES:
         print(f"Ready: {target / name / 'SKILL.md'}")
     print("In Claude Code, run /reload-skills, or restart Claude from the project you are reviewing.")
-    print("Then use: /pr-review review #42")
+    print("For a queue: /pr-triage open PRs in this repository")
+    print("For a specific PR: /pr-review review #42")
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     scope = parser.add_mutually_exclusive_group(required=True)
     scope.add_argument("--project", type=Path, help="Existing project directory to install into")
-    scope.add_argument("--user", action="store_true", help="Install pr-review in ~/.claude/skills for all local projects")
+    scope.add_argument("--user", action="store_true", help="Install both skills in ~/.claude/skills for all local projects")
     args = parser.parse_args(argv)
     source = Path(__file__).resolve().parent
     if args.user:
